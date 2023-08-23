@@ -13,12 +13,12 @@ namespace MBS_Reborn.Character
         public double winTimes { get; set; }
         public int pickTop { get; set; }
         public int pickMid { get; set; }
-        public int pickBot { get; set; }
+        public int pickADC { get; set; }
         public int pickJungle { get; set; }
         public int pickSupport { get; set; }
         public int winTop { get; set; }
         public int winMid { get; set; }
-        public int winBot { get; set; }
+        public int winADC { get; set; }
         public int winJungle { get; set; }
         public int winSupport { get; set; }
 

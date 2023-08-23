@@ -12,7 +12,7 @@ namespace MBS_Reborn.xTeam
 {
     internal class Phases
     {
-        public List<Characters> Bans(List<Characters> characters, List<TemporaryStats> tempStats, string Elo)
+        public static List<Characters> Bans(List<Characters> characters, List<TemporaryStats> tempStats, string Elo)
         {
             List<Characters> bannedCharacters = new List<Characters>();
             Random random = new Random();
@@ -35,7 +35,7 @@ namespace MBS_Reborn.xTeam
             }
             return bannedCharacters;
         }
-        public Team[] Picks(List<Characters> characters, List<TemporaryStats> tempStats, string Elo, List<Characters> bans)
+        public static Team[] Picks(List<Characters> characters, List<TemporaryStats> tempStats, string Elo, List<Characters> bans)
         {
             int choice = 0;
             Team[] teams = { new Team(), new Team() };
@@ -55,7 +55,7 @@ namespace MBS_Reborn.xTeam
                         {
                             //looks if character is not already banned or picked :3
                             Characters selectedCharacter = characters.Find(c => c.name == temp.name);
-                            if (validate(choice, teams, selectedCharacter))
+                            if (validate(choice, teams, selectedCharacter, temp))
                             {
                                 picked.Add(selectedCharacter);
                                 temp.picks++;
@@ -70,30 +70,45 @@ namespace MBS_Reborn.xTeam
             }
             return teams;
         }
-        private static bool validate(int choice, Team[] teams, Characters selectedCharacter)
+        private static bool validate(int choice, Team[] teams, Characters selectedCharacter, TemporaryStats temp)
         {
             if (!teams[1].checkRoles(selectedCharacter) && !teams[0].checkRoles(selectedCharacter))
             {
+                var validated = false;
                 if (teams[choice % 2].top.name == "empty" && //Makes sure character is qualified or off meta. 
-                    (false||offmeta()))
+                    (selectedCharacter.canTop||offmeta()))
                 {
+                    validated= true;
                     teams[choice % 2].top = selectedCharacter;
+                    temp.pickTop++;
                 }
-                if (teams[choice % 2].jg.name == "empty")
+                else if (teams[choice % 2].jg.name == "empty" && //Makes sure character is qualified or off meta. 
+                    (selectedCharacter.canJg || offmeta()))
                 {
+                    validated = true;
                     teams[choice % 2].jg = selectedCharacter;
+                    temp.pickJungle++;
                 }
-                if (teams[choice % 2].mid.name == "empty")
+                else if (teams[choice % 2].mid.name == "empty" && //Makes sure character is qualified or off meta. 
+                    (selectedCharacter.canMid || offmeta()))
                 {
+                    validated = true;
                     teams[choice % 2].mid = selectedCharacter;
+                    temp.pickMid++;
                 }
-                if (teams[choice % 2].adc.name == "empty")
+                else if (teams[choice % 2].adc.name == "empty" && //Makes sure character is qualified or off meta. 
+                    (selectedCharacter.canAdc || offmeta()))
                 {
+                    validated = true;
                     teams[choice % 2].adc = selectedCharacter;
+                    temp.pickADC++;
                 }
-                if (teams[choice % 2].sup.name == "empty")
+                else if (teams[choice % 2].sup.name == "empty" && //Makes sure character is qualified or off meta. 
+                    (selectedCharacter.canSup || offmeta()))
                 {
+                    validated = true;
                     teams[choice % 2].sup = selectedCharacter;
+                    temp.pickSupport++;
                 }
                 else { return false; }
                 return true;
@@ -101,11 +116,13 @@ namespace MBS_Reborn.xTeam
             return false;
         }
 
+ 
+
         private static bool offmeta()
         {
             Random random = new Random();
             double offmeta = random.NextDouble();
-            if (offmeta < .05) 
+            if (offmeta < .01) 
             {
                 return true;
             }
