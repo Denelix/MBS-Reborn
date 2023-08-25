@@ -16,8 +16,12 @@ namespace MBS_Reborn.xTeam
         public Characters adc { get; set; } = new Characters();
         public Characters sup { get; set; } = new Characters();
         public Characters teamStats { get; set; }
-        public Dictionary<Characters, short> levels { get; set; }
-        public Dictionary<Characters, double> gold { get; set; }
+        public Tuple<Characters, short> levels { get; set; }
+        public Tuple<Characters, double> gold { get; set; }
+        public short jgGanks { get; set; }
+        public short midGanks { get; set; }
+        public short supGanks { get; set; }
+        public short kills { get; set; } = 0;
         public bool checkRoles(Characters Character)
         {
             if (top == Character && top!= null)

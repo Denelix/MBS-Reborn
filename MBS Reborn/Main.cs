@@ -1,14 +1,11 @@
 using MBS_Reborn.Character;
-using MBS_Reborn.Debugger;
 using Microsoft.Office.Interop.Excel;
 using System.Diagnostics;
-using System.Xml.Serialization;
 using static MBS_Reborn.Character.Characters;
 using Characters = MBS_Reborn.Character.Characters;
-using MBS_Reborn.FileConversion;
 using MBS_Reborn.xTeam;
-using System.Collections.Generic;
 using Debug = MBS_Reborn.Debugger.Debug;
+using MBS_Reborn.BattleSimulator;
 
 namespace MBS_Reborn
 {
@@ -100,13 +97,13 @@ namespace MBS_Reborn
                     character.canSup = true;
             }
 
-            foreach (Tuple<Characters, double> tuple in supScores)
+/*            foreach (Tuple<Characters, double> tuple in supScores)
             {
                 Debug.Log(tuple.Item1.name);
-            }
+            }*/
 
                 //Sort from highest to lowest
-                for (int days = 0; days < 1; days++)
+            for (int loops = 0; loops < 1; loops++)
             {
                 pickScores = 0;
                 banScores = 0;
@@ -117,7 +114,6 @@ namespace MBS_Reborn
                 //TL:DR THis just sets the scores for the characters.
                 foreach (TemporaryStats tempStat in temp)
                 {
-                    Debug.Log(tempStat.name);
                     tempStat.pickStart = pickScores;
                     tempStat.banStart = banScores;
                     Characters character = characters.Find(c => c.name == tempStat.name);
@@ -134,16 +130,17 @@ namespace MBS_Reborn
                 }
                 //This is the acutal looper to simulate the matches
                 var progress = 0;
-                PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
                 Parallel.For(0, matches, new ParallelOptions { MaxDegreeOfParallelism = threads }, match =>
                 {
                     String Elo = getElo(); // Sets match of the match
                     List<Characters> bans = Phases.Bans(characters, temp, Elo);
                     Team[] teams = Phases.Picks(characters, temp, Elo, bans);
+                    Match Match = new Match(teams, Elo, stats);
+                    Match.StartMatch();
                     progress++;
-                    if (progress % (matches/25000) == 0)
+                    if (progress % (matches/2500) == 0)
                     {
-                        //Debug.Log("%" + Math.Round(Divide(progress, matches) * 100, 2));
+                        Debug.Log("%" + Math.Round(Divide(progress, matches) * 100, 2));
 /*                        Debug.Log($"==============");
                         foreach (Team team in teams)
                         {
@@ -171,8 +168,9 @@ namespace MBS_Reborn
                     double A = ((Divide(tempStat.pickADC, tempStat.picks)) * 100);
                     double S = ((Divide(tempStat.pickSupport, tempStat.picks)) * 100);
 
+                    Debug.Log("-==============-");
                     Debug.Log(tempStat.name);
-                    Debug.Log("Winrate  50%");
+                    Debug.Log("Winrate  " + Math.Round(Divide(character.wins, tempStat.picks)*100) + "%");
                     Debug.Log("PickRate " + Math.Round(picks, 2) + "%");
                     Debug.Log("BanRate  " + Math.Round(bans, 2) + "%");
                     Debug.Log("Presence " + Math.Round(picks + bans, 2) + "%");
@@ -181,19 +179,18 @@ namespace MBS_Reborn
                     Debug.Log("Mid " + Math.Round(M, 2) + "%");
                     Debug.Log("ADC " + Math.Round(A, 2) + "%");
                     Debug.Log("Support " + Math.Round(S, 2) + "%");
-                    Debug.Log("-==============-");
                 }
-                Console.ReadKey();
             }
+            Console.ReadKey();
         }
         private string getElo()
         {
             double randomValue = getRandom();
-            if (randomValue < 70)
+            if (randomValue < 85)
             {
                 return "Average";
             }
-            else if (randomValue >= 70 && randomValue < 95)
+            else if (randomValue >= 85 && randomValue < 98)
             {
                 return "Skilled";
             }

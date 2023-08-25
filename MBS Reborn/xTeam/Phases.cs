@@ -116,8 +116,6 @@ namespace MBS_Reborn.xTeam
             return false;
         }
 
- 
-
         private static bool offmeta()
         {
             Random random = new Random();
