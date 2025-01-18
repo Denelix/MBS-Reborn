@@ -1,11 +1,10 @@
 using MBS_Reborn.Character;
-using Microsoft.Office.Interop.Excel;
-using System.Diagnostics;
 using static MBS_Reborn.Character.Characters;
 using Characters = MBS_Reborn.Character.Characters;
 using MBS_Reborn.xTeam;
-using Debug = MBS_Reborn.Debugger.Debug;
+using MBS_Reborn.Debugger;
 using MBS_Reborn.BattleSimulator;
+using System.Collections.Generic;
 
 namespace MBS_Reborn
 {
@@ -19,13 +18,17 @@ namespace MBS_Reborn
         double day = 0;
         public static int gameTime;
         public static int a;
+        public static int Kills;
+        public static int Deaths;
+        public static int Assists;
         public static double pickScores = 0;
         public static double banScores = 0;
         public static String[] names = new string[999];
         public static double TypeDmg = 1; //1 = SingleType / 1.33=Mixed / 2=TypeDmg 
         public double selected;
         public object locker = new object();
-        public static int threads = Convert.ToInt32(MathF.Round(Environment.ProcessorCount / 2));
+        //public static int threads = Convert.ToInt32(MathF.Round(Environment.ProcessorCount / 2));
+        public static int threads = 16;
         public Main()
         {
             InitializeComponent();
@@ -55,9 +58,9 @@ namespace MBS_Reborn
                 TemporaryStats pickbanStats = new TemporaryStats();
                 Stats characterStats = new Stats();
 
-                pickbanStats.name = character.name;
+                pickbanStats.name = character.Name;
                 temp.Add(pickbanStats);
-                characterStats.name = character.name;
+                characterStats.name = character.Name;
                 stats.Add(characterStats);
 
                 Tuple<Characters,double> midScore = Mid(character);
@@ -81,25 +84,25 @@ namespace MBS_Reborn
 
             foreach (Characters character in characters)
             {
-                if (topScores.Exists(t => t.Item1.name == character.name))
+                if (topScores.Exists(t => t.Item1.Name == character.Name))
                     character.canTop = true;
 
-                if (jgScores.Exists(t => t.Item1.name == character.name))
+                if (jgScores.Exists(t => t.Item1.Name == character.Name))
                     character.canJg = true;
 
-                if (midScores.Exists(t => t.Item1.name == character.name))
+                if (midScores.Exists(t => t.Item1.Name == character.Name))
                     character.canMid = true;
 
-                if (adcScores.Exists(t => t.Item1.name == character.name))
+                if (adcScores.Exists(t => t.Item1.Name == character.Name))
                     character.canAdc = true;
 
-                if (supScores.Exists(t => t.Item1.name == character.name))
+                if (supScores.Exists(t => t.Item1.Name == character.Name))
                     character.canSup = true;
             }
 
 /*            foreach (Tuple<Characters, double> tuple in supScores)
             {
-                Debug.Log(tuple.Item1.name);
+                Debug.Log(tuple.Item1.Name);
             }*/
 
                 //Sort from highest to lowest
@@ -107,7 +110,7 @@ namespace MBS_Reborn
             {
                 pickScores = 0;
                 banScores = 0;
-                int matches = 250000;
+                int matches = 30000;
                 int match = 0;
                 //List<Items> charactersOG = FromJson(characterFile2);
                 //Using the temporary stats list I "initialized" This is filling in and giving the respected values for them
@@ -116,15 +119,15 @@ namespace MBS_Reborn
                 {
                     tempStat.pickStart = pickScores;
                     tempStat.banStart = banScores;
-                    Characters character = characters.Find(c => c.name == tempStat.name);
+                    Characters character = characters.Find(c => c.Name == tempStat.name);
                     Stats characterStats = stats.Find(s => s.name == tempStat.name);
                     if (character != null)
                     {
                         tempStat.pickStart = pickScores;
-                        pickScores += character.initPickRate(characterStats);
+                        pickScores += character.InitPickRate(characterStats);
                         tempStat.pickEnd = pickScores;
                         tempStat.banStart = banScores;
-                        banScores += character.initBanRate(characterStats);
+                        banScores += character.InitBanRate(characterStats);
                         tempStat.banEnd = banScores;
                     }
                 }
@@ -135,20 +138,20 @@ namespace MBS_Reborn
                     String Elo = getElo(); // Sets match of the match
                     List<Characters> bans = Phases.Bans(characters, temp, Elo);
                     Team[] teams = Phases.Picks(characters, temp, Elo, bans);
-                    Match Match = new Match(teams, Elo, stats);
+                    Match Match = new Match(teams, Elo, stats, temp,characters);
                     Match.StartMatch();
                     progress++;
-                    if (progress % (matches/2500) == 0)
+                    if (progress % (matches) == 0)
                     {
                         Debug.Log("%" + Math.Round(Divide(progress, matches) * 100, 2));
 /*                        Debug.Log($"==============");
                         foreach (Team team in teams)
                         {
-                            Debug.Log($"{team.top.name}");
-                            Debug.Log($"{team.jg.name}");
-                            Debug.Log($"{team.mid.name}");
-                            Debug.Log($"{team.adc.name}");
-                            Debug.Log($"{team.sup.name}");
+                            Debug.Log($"{team.top.Name}");
+                            Debug.Log($"{team.jg.Name}");
+                            Debug.Log($"{team.mid.Name}");
+                            Debug.Log($"{team.adc.Name}");
+                            Debug.Log($"{team.sup.Name}");
                             Debug.Log($"    - vs -");
                         }*/
                     }
@@ -159,7 +162,7 @@ namespace MBS_Reborn
                 //Finished everythign just looping and printing the stuff for you : ) 
                 foreach (TemporaryStats tempStat in temp)
                 {
-                    Characters character = characters.Find(c => c.name == tempStat.name);
+                    Characters character = characters.Find(c => c.Name == tempStat.name);
                     double bans = ((tempStat.bans / matches) * 100);
                     double picks = ((tempStat.picks / matches) * 100);
                     double T = ((Divide(tempStat.pickTop, tempStat.picks)) * 100);
@@ -170,7 +173,8 @@ namespace MBS_Reborn
 
                     Debug.Log("-==============-");
                     Debug.Log(tempStat.name);
-                    Debug.Log("Winrate  " + Math.Round(Divide(character.wins, tempStat.picks)*100) + "%");
+                    Debug.Log($"{Math.Round(tempStat.Kills/tempStat.picks,1)}/{Math.Round(tempStat.Deaths / tempStat.picks)}/{Math.Round(tempStat.Assists / tempStat.picks)}");
+                    Debug.Log("Winrate  " + Math.Round(Divide(character.wins, tempStat.picks)*100,2) + "%");
                     Debug.Log("PickRate " + Math.Round(picks, 2) + "%");
                     Debug.Log("BanRate  " + Math.Round(bans, 2) + "%");
                     Debug.Log("Presence " + Math.Round(picks + bans, 2) + "%");

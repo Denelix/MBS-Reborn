@@ -24,10 +24,10 @@ namespace MBS_Reborn.xTeam
                 {
                     if (temp.banStart <= banSelect && banSelect <= temp.banEnd)
                     {
-                        if (bannedCharacters.Where(c => c.name == temp.name).ToList().Count < 2)//Lists are awesome.
+                        if (bannedCharacters.Where(c => c.Name == temp.name).ToList().Count < 2)//Lists are awesome.
                         {
-                            bannedCharacters.Add(characters.Find(c => c.name == temp.name));
-                            if (bannedCharacters.Where(c => c.name == temp.name).ToList().Count == 1) { temp.bans++; }
+                            bannedCharacters.Add(characters.Find(c => c.Name == temp.name));
+                            if (bannedCharacters.Where(c => c.Name == temp.name).ToList().Count == 1) { temp.bans++; }
                             break;
                         }
                     }
@@ -50,11 +50,11 @@ namespace MBS_Reborn.xTeam
                     try
                     {
                         if (temp.pickStart <= pickSelect && pickSelect <= temp.pickEnd
-                            && bans.Where(c => c.name == temp.name).ToList().Count == 0
-                            && picked.Where(c => c.name == temp.name).ToList().Count == 0)
+                            && bans.Where(c => c.Name == temp.name).ToList().Count == 0
+                            && picked.Where(c => c.Name == temp.name).ToList().Count == 0)
                         {
                             //looks if character is not already banned or picked :3
-                            Characters selectedCharacter = characters.Find(c => c.name == temp.name);
+                            Characters selectedCharacter = characters.Find(c => c.Name == temp.name);
                             if (validate(choice, teams, selectedCharacter, temp))
                             {
                                 picked.Add(selectedCharacter);
@@ -74,40 +74,41 @@ namespace MBS_Reborn.xTeam
         {
             if (!teams[1].checkRoles(selectedCharacter) && !teams[0].checkRoles(selectedCharacter))
             {
+                FightCharacter fightCharacter = new FightCharacter(selectedCharacter);
                 var validated = false;
-                if (teams[choice % 2].top.name == "empty" && //Makes sure character is qualified or off meta. 
+                if (teams[choice % 2].Top.Name == "empty" && //Makes sure character is qualified or off meta. 
                     (selectedCharacter.canTop||offmeta()))
                 {
                     validated= true;
-                    teams[choice % 2].top = selectedCharacter;
+                    teams[choice % 2].Top = fightCharacter;
                     temp.pickTop++;
                 }
-                else if (teams[choice % 2].jg.name == "empty" && //Makes sure character is qualified or off meta. 
+                else if (teams[choice % 2].Jungle.Name == "empty" && //Makes sure character is qualified or off meta. 
                     (selectedCharacter.canJg || offmeta()))
                 {
                     validated = true;
-                    teams[choice % 2].jg = selectedCharacter;
+                    teams[choice % 2].Jungle = fightCharacter;
                     temp.pickJungle++;
                 }
-                else if (teams[choice % 2].mid.name == "empty" && //Makes sure character is qualified or off meta. 
+                else if (teams[choice % 2].Mid.Name == "empty" && //Makes sure character is qualified or off meta. 
                     (selectedCharacter.canMid || offmeta()))
                 {
                     validated = true;
-                    teams[choice % 2].mid = selectedCharacter;
+                    teams[choice % 2].Mid = fightCharacter;
                     temp.pickMid++;
                 }
-                else if (teams[choice % 2].adc.name == "empty" && //Makes sure character is qualified or off meta. 
+                else if (teams[choice % 2].ADC.Name == "empty" && //Makes sure character is qualified or off meta. 
                     (selectedCharacter.canAdc || offmeta()))
                 {
                     validated = true;
-                    teams[choice % 2].adc = selectedCharacter;
+                    teams[choice % 2].ADC = fightCharacter;
                     temp.pickADC++;
                 }
-                else if (teams[choice % 2].sup.name == "empty" && //Makes sure character is qualified or off meta. 
+                else if (teams[choice % 2].Support.Name == "empty" && //Makes sure character is qualified or off meta. 
                     (selectedCharacter.canSup || offmeta()))
                 {
                     validated = true;
-                    teams[choice % 2].sup = selectedCharacter;
+                    teams[choice % 2].Support = fightCharacter;
                     temp.pickSupport++;
                 }
                 else { return false; }

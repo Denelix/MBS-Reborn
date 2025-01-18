@@ -26,6 +26,9 @@ namespace MBS_Reborn.Character
         public int winADC { get; set; }
         public int winJungle { get; set; }
         public int winSupport { get; set; }
+        public int Kills { get; set; }
+        public int Deaths { get; set; }
+        public int Assists { get; set; }
         public override string ToString()
         {
             return $"Character: {name}";
